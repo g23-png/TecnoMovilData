@@ -44,7 +44,7 @@ TecnoMovilData/
             ├── GeneradorDatos.java           # Generador de datos de prueba simulados
             ├── TecnoMovilDataProcessor.java  # Lógica de negocio y procesamiento funcional con Streams
             └── Main.java                     # Interfaz de consola accionable e interactiva
-
+```
 ---
 
 ##  Autores
