@@ -45,6 +45,8 @@ TecnoMovilData/
             ├── TecnoMovilDataProcessor.java  # Lógica de negocio y procesamiento funcional con Streams
             └── Main.java                     # Interfaz de consola accionable e interactiva
 
+---
+
 ##  Autores
 
 * **James Emnauel Machado Taborda**
