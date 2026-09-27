@@ -12,21 +12,42 @@ Sistema de análisis y procesamiento de datos en tiempo real para el transporte 
 
 ## ⚙️ Principios de Diseño Aplicados
 
-- **Inmutabilidad:** Los registros de entrada no sufren alteraciones durante el procesamiento. La salida se genera mediante colecciones inmutables (`toUnmodifiableList`, `toUnmodifiableMap`)[cite: 1].
-- **Funciones Puras:** Cada método del procesador es independiente de estados externos globales y no produce efectos secundarios en la consola o memoria[cite: 1].
-- **Programación Declarativa:** Todo el procesamiento de datos se realiza a través del pipeline de `java.util.stream.Stream`[cite: 1].
-- **Modelado Moderno:** Implementación de `record` para definir estructuras de datos concisas e inmutables.
+- **Inmutabilidad:** La lista de registros nunca se modifica durante el procesamiento, dado que todas las operaciones devuelven colecciones inmutables (`toUnmodifiableList`, `toUnmodifiableMap`, `Map.copyOf`).
+- **Funciones Puras:** Cada método del procesador depende solo de sus parámetros, no usa estado global y no produce efectos secundarios.
+- **Programación Declarativa:** Todo el procesamiento se expresa como pipelines de `java.util.stream.Stream` con lambdas y referencias a métodos.
+- **Paralelización:** Cada operación tiene una variante con el parámetro `paralelo` que ejecuta el mismo pipeline con `parallelStream()`.
+- **Modelado Moderno:** Uso de `record` para definir estructuras de datos concisas e inmutables.
 
 ---
 
-## 🚀 Funcionalidades Módulo Módulo Data Processor
+## 🚀 Funcionalidades del Módulo Data Processor
 
-1. **Afluencia por Estación:** Mide y agrupa la cantidad de entradas registradas en cada estación[cite: 1].
-2. **Identificación de Horas Pico:** Agrupa eventos por hora y determina el *Top N* con mayor tráfico de pasajeros[cite: 1].
-3. **Rutas más Utilizadas:** Ordena y jerarquiza las rutas de transporte con mayor nivel de ocupación[cite: 1].
-4. **Patrones de Viaje por Usuario:** Rastrea el historial secuencial de estaciones visitadas por cada usuario[cite: 1].
-5. **Tiempo Promedio entre Estaciones:** Calcula la duración promedio (en minutos) entre registros consecutivos de los usuarios[cite: 1].
-6. **Detección de Sobrecarga en Rutas:** Evalúa si el volumen de ocupación de una ruta supera un umbral dinámico definible, categorizándola como `NORMAL` o `CRÍTICA`[cite: 1].
+1. **Afluencia por Estación:** Cuenta las entradas registradas en cada estación y la cantidad de usuarios distintos que ingresaron.
+2. **Identificación de Horas Pico:** Agrupa los registros por hora del día y devuelve el *Top N* con mayor flujo.
+3. **Rutas más Utilizadas:** Ordena las rutas de mayor a menor según la cantidad de viajes.
+4. **Patrones de Viaje por Usuario:** Lista, para cada usuario, las estaciones visitadas en orden cronológico.
+5. **Tiempo Promedio entre Estaciones:** Identifica cada desplazamiento (una entrada seguida de una salida en otra estación) y calcula el tiempo promedio por tramo (`Norte -> Centro`), por usuario y general.
+6. **Detección de Sobrecarga en Rutas:** Marca como `CRÍTICA` toda ruta cuya ocupación supera un umbral simulado (se definió que por defecto fuera el 20% de los viajes del día) y como `NORMAL` las demás.
+
+---
+
+## 🧪 Datos Simulados
+
+`GeneradorDatos` produce por defecto **1.000.000 de registros** de forma determinista (siempre los mismos datos) y en paralelo, sin estado compartido: cada valor aleatorio sale de un `SplittableRandom` propio del usuario y del viaje.
+
+- Cada usuario realiza 4 viajes encadenados que no se solapan; cada viaje genera una `entrada` y una `salida`, y el siguiente viaje empieza en la estación donde terminó el anterior.
+- La duración de un viaje depende de la distancia entre estaciones.
+- Se simularon las siguientes horas pico (6–9 h y 17–20 h)
+
+---
+
+## ▶️ Ejecución
+
+```bash
+javac -d bin src/com/tecnomovil/*.java
+java -cp bin com.tecnomovil.Main            # 1.000.000 de registros
+java -cp bin com.tecnomovil.Main 5000000    # cantidad personalizada
+```
 
 ---
 
@@ -39,12 +60,14 @@ TecnoMovilData/
 └── src/
     └── com/
         └── tecnomovil/
-            ├── RegistroTransporte.java       # Modelado de registros de entrada/salida (Record)
-            ├── EstadoRuta.java               # Modelado del estado y saturación de rutas (Record)
-            ├── GeneradorDatos.java           # Generador de datos de prueba simulados
-            ├── TecnoMovilDataProcessor.java  # Lógica de negocio y procesamiento funcional con Streams
-            └── Main.java                     # Interfaz de consola accionable e interactiva
+            ├── RegistroTransporte.java       # Registro de entrada/salida (Record)
+            ├── Tramo.java                    # Desplazamiento entre dos estaciones (Record)
+            ├── EstadoRuta.java               # Estado de ocupación de una ruta (Record)
+            ├── GeneradorDatos.java           # Generador de datos simulados a gran escala
+            ├── TecnoMovilDataProcessor.java  # Procesamiento funcional con Streams
+            └── Main.java                     # Menú de consola interactivo
 ```
+
 ---
 
 ##  Autores
